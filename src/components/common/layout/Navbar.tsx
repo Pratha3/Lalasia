@@ -21,14 +21,15 @@ export default function NavBar() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
-  // useEffect only runs on the client, so now we can show the UI
+  // useEffect only runs on the client — needed to safely read `theme`
+  // without causing a hydration mismatch between server and client.
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return <div className="w-10 h-10" />; // Placeholder to avoid layout shift
-  }
+  // Don't return early here — that would cause hooks to be called
+  // a different number of times between renders (violates Rules of Hooks).
+  // Instead, only guard the theme-dependent UI below.
   return (
     <nav className="bg-background shadow px-4 lg:px-6 py-2.5">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -55,17 +56,20 @@ export default function NavBar() {
             <CgProfile className="h-5 w-5" />
             <IoBagOutline className="h-5 w-5" />
           </div>
-          <button
-            type="button"
-            className="p-2 rounded-md hover:bg-muted"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5 text-yellow-500" />
-            ) : (
-              <Moon className="h-5 w-5 text-gray-600" />
-            )}
-          </button>
+          {/* Only render theme toggle after mount to avoid hydration mismatch */}
+          {mounted && (
+            <button
+              type="button"
+              className="p-2 rounded-md hover:bg-muted"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              {theme === "dark" ? (
+                <Sun className="h-5 w-5 text-yellow-500" />
+              ) : (
+                <Moon className="h-5 w-5 text-gray-600" />
+              )}
+            </button>
+          )}
 
           <button
             type="button"

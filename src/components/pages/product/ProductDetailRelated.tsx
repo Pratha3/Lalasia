@@ -8,7 +8,7 @@ interface ProductDetailRelatedProps {
 }
 
 export default async function ProductDetailRelated({ currentId }: ProductDetailRelatedProps) {
-    const { products } = await getProducts(7);
+    const { products } = await getProducts();
     const related = products.filter((p) => p.id !== currentId).slice(0, 6);
 
     return (

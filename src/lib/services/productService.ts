@@ -17,25 +17,13 @@ export interface Product {
 interface ProductsResponse {
     products: Product[];
     total: number;
-    skip: number;
-    limit: number;
 }
 
 // --- Fetch functions ---
 
-export async function getProducts(limit = 30, skip = 0): Promise<ProductsResponse> {
-    const res = await fetch(`${BASE_URL}?limit=${limit}&skip=${skip}`, {
-        next: { revalidate: 3600 },
-    });
+export async function getProducts(): Promise<ProductsResponse> {
+    const res = await fetch(BASE_URL, { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error("Failed to fetch products");
-    return res.json();
-}
-
-export async function getProductById(id: number): Promise<Product> {
-    const res = await fetch(`${BASE_URL}/${id}`, {
-        next: { revalidate: 3600 },
-    });
-    if (!res.ok) throw new Error("Failed to fetch product");
     return res.json();
 }
 
@@ -44,5 +32,25 @@ export async function searchProducts(query: string): Promise<ProductsResponse> {
         next: { revalidate: 60 },
     });
     if (!res.ok) throw new Error("Failed to search products");
+    return res.json();
+}
+
+export async function getProductsByCategory(category: string): Promise<ProductsResponse> {
+    const res = await fetch(`${BASE_URL}/category/${encodeURIComponent(category)}`, {
+        next: { revalidate: 3600 },
+    });
+    if (!res.ok) throw new Error("Failed to fetch products by category");
+    return res.json();
+}
+
+export async function getCategories(): Promise<string[]> {
+    const res = await fetch(`${BASE_URL}/category-list`, { next: { revalidate: 86400 } });
+    if (!res.ok) throw new Error("Failed to fetch categories");
+    return res.json();
+}
+
+export async function getProductById(id: number): Promise<Product> {
+    const res = await fetch(`${BASE_URL}/${id}`, { next: { revalidate: 3600 } });
+    if (!res.ok) throw new Error("Failed to fetch product");
     return res.json();
 }

@@ -4,6 +4,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+// NuqsAdapter wires up nuqs with Next.js App Router.
+// It must wrap the entire app so all useQueryState hooks
+// can read/write the URL search params consistently.
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const eudoxus = localFont({
   src: "../../public/font/EudoxusSans-Regular-BF659b6cb1d4714.ttf",
@@ -24,9 +28,11 @@ export default function RootLayout({
     <html lang="en" className={eudoxus.className} suppressHydrationWarning>
       <body className="bg-background text-foreground transition-colors">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <NavBar />
-          <main>{children}</main>
-          <Footer />
+          <NuqsAdapter>
+            <NavBar />
+            <main>{children}</main>
+            <Footer />
+          </NuqsAdapter>
         </ThemeProvider>
       </body>
     </html>
