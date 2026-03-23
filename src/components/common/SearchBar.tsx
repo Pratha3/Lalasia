@@ -9,18 +9,24 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({ placeholder = "Search..." }: SearchBarProps) {
-    // Local state for the input — updates instantly as user types
     const [inputValue, setInputValue] = useState("");
 
-    // nuqs state — only updates the URL when user submits (click or Enter)
-    // shallow: false triggers the server component re-fetch
     const [, setSearch] = useQueryState(
         "search",
         parseAsString.withOptions({ shallow: false, history: "replace" })
     );
 
     const handleSubmit = () => {
+        // null removes ?search from URL, empty input = show all products
         setSearch(inputValue.trim() || null);
+    };
+
+    const handleChange = (value: string) => {
+        setInputValue(value);
+        // If user clears the input, immediately reset search results
+        if (value === "") {
+            setSearch(null);
+        }
     };
 
     return (
@@ -29,7 +35,7 @@ export default function SearchBar({ placeholder = "Search..." }: SearchBarProps)
             <input
                 type="text"
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)} // only updates local state
+                onChange={(e) => handleChange(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 placeholder={placeholder}
                 className="flex-1 px-3 py-3 text-sm focus:outline-none bg-transparent placeholder:text-muted-foreground"

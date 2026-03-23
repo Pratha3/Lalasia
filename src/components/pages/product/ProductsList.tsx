@@ -1,21 +1,5 @@
-/**
- * ProductsList — server component responsible for data fetching.
- *
- * WHY a server component here?
- * ----------------------------
- * Fetching happens on the server, so:
- *  - No loading spinners needed for initial data
- *  - API keys / sensitive logic never reach the browser
- *  - Next.js caches the fetch result (revalidate: 3600)
- *
- * HOW search/filter works end-to-end:
- * ------------------------------------
- * 1. User types in SearchBar or picks a category in ProductFilter
- * 2. nuqs updates the URL: /product?search=foo  or  /product?category=beauty
- * 3. Next.js detects the URL change and re-renders this server component
- * 4. page.tsx reads the new searchParams and passes them here as props
- * 5. We call the matching API endpoint and pass results to ProductsClient
- */
+// Server component — fetches products based on URL params (search, category, page)
+// Passes data to ProductsClient which renders the grid + pagination
 
 import SectionWrapper from "@/components/common/SectionWrapper";
 import {
@@ -23,39 +7,34 @@ import {
   searchProducts,
   getProductsByCategory,
   getCategories,
+  PAGE_SIZE,
 } from "@/lib/services/productService";
 import ProductsClient from "@/components/pages/product/ProductsClient";
 
 interface Props {
   search?: string;
   category?: string;
+  page?: number;
 }
 
-export default async function ProductsListSection({ search, category }: Props) {
-  /**
-   * Fetch products and categories in parallel with Promise.all.
-   * - If ?search=x   → hit /products/search?q=x
-   * - If ?category=y → hit /products/category/y
-   * - Otherwise      → hit /products (all)
-   *
-   * Categories are always fetched so the filter dropdown is always populated.
-   */
+export default async function ProductsListSection({ search, category, page = 1 }: Props) {
+  // Fetch products + categories in parallel
   const [data, categories] = await Promise.all([
     search
-      ? searchProducts(search)
+      ? searchProducts(search, page)
       : category
-        ? getProductsByCategory(category)
-        : getProducts(),
+        ? getProductsByCategory(category, page)
+        : getProducts(page),
     getCategories(),
   ]);
 
   return (
     <SectionWrapper>
-      {/* Pass server-fetched data down to the client shell */}
       <ProductsClient
         products={data.products}
         total={data.total}
         categories={categories}
+        pageSize={PAGE_SIZE}
       />
     </SectionWrapper>
   );

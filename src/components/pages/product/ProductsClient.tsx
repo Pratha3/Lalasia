@@ -1,45 +1,30 @@
 "use client";
 
-/**
- * ProductsClient — client shell that composes SearchBar + ProductFilter + grid.
- *
- * This component is intentionally thin. It receives already-fetched data from
- * the server component (ProductsList) and just renders it.
- *
- * The search/filter state lives in the URL (managed by nuqs), NOT in this
- * component. So there's no useState for query/category here — nuqs handles
- * that inside SearchBar and ProductFilter directly.
- *
- * Data flow:
- *   URL params (?search=x&category=y)
- *       → page.tsx reads them as searchParams (server)
- *       → ProductsList fetches the right data from API (server)
- *       → ProductsClient receives and renders the result (client)
- */
-
 import Link from "next/link";
 import { CgSortAz } from "react-icons/cg";
 import ProductCard from "@/components/common/ProductCard";
 import SearchBar from "@/components/common/SearchBar";
 import ProductFilter from "@/components/pages/product/ProductFilter";
+import Pagination from "@/components/common/Pagination";
 import { Product } from "@/lib/services/productService";
 
-interface ProductsClientProps {
+interface Props {
     products: Product[];
     total: number;
     categories: string[];
+    pageSize: number;
 }
 
-export default function ProductsClient({ products, total, categories }: ProductsClientProps) {
+export default function ProductsClient({ products, total, categories, pageSize }: Props) {
     return (
-        <>
-            {/* Search & Filter bar — each manages its own URL param via nuqs */}
+        <div>
+            {/* Search & Filter */}
             <div className="flex flex-col sm:flex-row mt-8 mb-5 gap-2">
                 <SearchBar placeholder="Search product" />
                 <ProductFilter categories={categories} />
             </div>
 
-            {/* Header — total reflects the server-filtered count, not client-side */}
+            {/* Header */}
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl md:text-3xl font-bold leading-tight m-2">
                     Total Products
@@ -51,7 +36,7 @@ export default function ProductsClient({ products, total, categories }: Products
                 </span>
             </div>
 
-            {/* Product grid — rendered from server-fetched, already-filtered data */}
+            {/* Product grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-4">
                 {products.map((p) => (
                     <Link href={`/product/${p.id}`} key={p.id}>
@@ -65,6 +50,9 @@ export default function ProductsClient({ products, total, categories }: Products
                     </Link>
                 ))}
             </div>
-        </>
+
+            {/* Pagination — total from API, pageSize is constant (12) */}
+            <Pagination total={total} pageSize={pageSize} />
+        </div>
     );
 }
