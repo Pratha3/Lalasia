@@ -8,7 +8,7 @@ interface Props {
 
 export default async function Product({ searchParams }: Props) {
   const { search, category, page } = await searchParams;
-  const pageNumber = Number(page) || 1;
+  const pageNumber = Math.max(1, Number(page) || 1);
 
   return (
     <>

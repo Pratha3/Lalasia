@@ -1,13 +1,12 @@
 import SectionWrapper from "@/components/common/SectionWrapper";
-import { Product } from "@/lib/services/productService";
+import { getProductById } from "@/lib/services/productService";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
-interface ProductDetailInfoProps {
-    product: Product;
-}
+export default async function ProductDetailInfo({ id }: { id: number }) {
+    const product = await getProductById(id);
 
-export default function ProductDetailInfo({ product }: ProductDetailInfoProps) {
+    if (!product) return <p className="p-10 text-center">Product Not Found</p>;
     return (
         <SectionWrapper>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-14">

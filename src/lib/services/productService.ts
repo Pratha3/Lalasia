@@ -41,9 +41,10 @@ export async function searchProducts(query: string, page = 1): Promise<ProductsR
 
 export async function getProductsByCategory(category: string, page = 1): Promise<ProductsResponse> {
     const skip = (page - 1) * PAGE_SIZE;
-    const res = await fetch(`${BASE_URL}/category/${encodeURIComponent(category)}?limit=${PAGE_SIZE}&skip=${skip}`, {
-        next: { revalidate: 3600 },
-    });
+    const res = await fetch(
+        `${BASE_URL}/category/${encodeURIComponent(category)}?limit=${PAGE_SIZE}&skip=${skip}`,
+        { next: { revalidate: 3600 } }
+    );
     if (!res.ok) throw new Error("Failed to fetch products by category");
     return res.json();
 }

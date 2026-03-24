@@ -1,57 +1,89 @@
 "use client";
 
-// Pagination component — updates ?page= in the URL via nuqs
-// nuqs triggers a server re-fetch with the new page number
-
 import { useQueryState, parseAsInteger } from "nuqs";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
-interface PaginationProps {
-    total: number;      // total number of items from API
-    pageSize: number;   // how many items per page
-}
-
-export default function Pagination({ total, pageSize }: PaginationProps) {
+export default function ProductPagination({ total, pageSize }: { total: number; pageSize: number }) {
     const totalPages = Math.ceil(total / pageSize);
 
-    // ?page= in the URL — defaults to 1 if not present
     const [page, setPage] = useQueryState(
         "page",
         parseAsInteger.withDefault(1).withOptions({ shallow: false, history: "replace" })
     );
 
-    if (totalPages <= 1) return null; // no pagination needed for single page
+    if (totalPages <= 1) return null;
+
+    // Clamp to valid range in case of invalid ?page= in URL
+    const safePage = Math.min(Math.max(1, page), totalPages);
+
+    const goTo = (p: number) => {
+        const clamped = Math.min(Math.max(1, p), totalPages);
+        setPage(clamped === 1 ? null : clamped); // null = remove ?page= for page 1 (clean URL)
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    // Show 5 page buttons max, centered around current page
+    const start = Math.max(1, safePage - 2);
+    const end = Math.min(totalPages, safePage + 2);
+    const visiblePages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+
+    const showStartEllipsis = visiblePages[0] > 2;
+    const showEndEllipsis = visiblePages[visiblePages.length - 1] < totalPages - 1;
 
     return (
-        <div className="flex items-center justify-center gap-2 mt-10">
-            {/* Previous button */}
-            <button
-                onClick={() => setPage(page - 1)}
-                disabled={page <= 1}
-                className="px-4 py-2 text-sm border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-                Prev
-            </button>
+        <Pagination className="mt-10">
+            <PaginationContent>
 
-            {/* Page number buttons */}
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`px-4 py-2 text-sm border border-border hover:bg-muted ${p === page ? "bg-brand text-white border-brand" : ""
-                        }`}
-                >
-                    {p}
-                </button>
-            ))}
+                <PaginationItem>
+                    <PaginationPrevious
+                        onClick={(e) => { e.preventDefault(); goTo(safePage - 1); }}
+                        aria-disabled={safePage <= 1}
+                        className={safePage <= 1 ? "pointer-events-none opacity-40" : "cursor-pointer"}
+                    />
+                </PaginationItem>
 
-            {/* Next button */}
-            <button
-                onClick={() => setPage(page + 1)}
-                disabled={page >= totalPages}
-                className="px-4 py-2 text-sm border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-                Next
-            </button>
-        </div>
+                {/* First page button if not in visible range */}
+                {visiblePages[0] > 1 && (
+                    <PaginationItem>
+                        <PaginationLink onClick={(e) => { e.preventDefault(); goTo(1); }} isActive={safePage === 1} className="cursor-pointer">1</PaginationLink>
+                    </PaginationItem>
+                )}
+                {showStartEllipsis && <PaginationItem><PaginationEllipsis /></PaginationItem>}
+
+                {/* Visible page range */}
+                {visiblePages.map((p) => (
+                    <PaginationItem key={p}>
+                        <PaginationLink onClick={(e) => { e.preventDefault(); goTo(p); }} isActive={p === safePage} className="cursor-pointer">
+                            {p}
+                        </PaginationLink>
+                    </PaginationItem>
+                ))}
+
+                {/* Last page button if not in visible range */}
+                {showEndEllipsis && <PaginationItem><PaginationEllipsis /></PaginationItem>}
+                {visiblePages[visiblePages.length - 1] < totalPages && (
+                    <PaginationItem>
+                        <PaginationLink onClick={(e) => { e.preventDefault(); goTo(totalPages); }} isActive={safePage === totalPages} className="cursor-pointer">{totalPages}</PaginationLink>
+                    </PaginationItem>
+                )}
+
+                <PaginationItem>
+                    <PaginationNext
+                        onClick={(e) => { e.preventDefault(); goTo(safePage + 1); }}
+                        aria-disabled={safePage >= totalPages}
+                        className={safePage >= totalPages ? "pointer-events-none opacity-40" : "cursor-pointer"}
+                    />
+                </PaginationItem>
+
+            </PaginationContent>
+        </Pagination>
     );
 }

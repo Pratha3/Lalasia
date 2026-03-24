@@ -51,6 +51,13 @@ export default function ProductsClient({ products, total, categories, pageSize }
                 ))}
             </div>
 
+            {/* Empty state */}
+            {products.length === 0 && (
+                <p className="text-center text-muted-foreground py-16">
+                    No products found. Try a different search or filter.
+                </p>
+            )}
+
             {/* Pagination — total from API, pageSize is constant (12) */}
             <Pagination total={total} pageSize={pageSize} />
         </div>

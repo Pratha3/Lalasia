@@ -1,15 +1,12 @@
 import ProductCard from "@/components/common/ProductCard";
 import SectionWrapper from "@/components/common/SectionWrapper";
-import { getProducts } from "@/lib/services/productService";
+import { getProducts, Product } from "@/lib/services/productService";
 import Link from "next/link";
 
-interface ProductDetailRelatedProps {
-    currentId: number;
-}
-
-export default async function ProductDetailRelated({ currentId }: ProductDetailRelatedProps) {
-    const { products } = await getProducts();
-    const related = products.filter((p) => p.id !== currentId).slice(0, 6);
+export default async function ProductDetailRelated({ currentId }: { currentId: number }) {
+    // Fetch first page of products and filter out the current one
+    const { products } = await getProducts(1);
+    const related = products.filter((p: Product) => p.id !== currentId).slice(0, 6);
 
     return (
         <SectionWrapper>
